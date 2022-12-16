@@ -1,8 +1,5 @@
-import 'dart:html';
-
 import 'package:event_scheduler/event.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key, required this.title});
