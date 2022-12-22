@@ -92,7 +92,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             ),
             TextField(
               controller: _controller,
-              maxLines: null,
+              maxLines: 4,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 labelStyle: TextStyle(color: Colors.white),

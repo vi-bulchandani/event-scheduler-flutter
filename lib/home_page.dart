@@ -1,6 +1,7 @@
 import 'package:event_scheduler/create_event.dart';
 import 'package:event_scheduler/event.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -21,13 +22,91 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<MyEvent> _event_list = [
-    // MyEvent("Event1", DateTime.now()),
-    // MyEvent("Event2", DateTime.now()),
-    // MyEvent("Event3", DateTime.now()),
-  ];
+  var db = Hive.box<MyEvent?>('events list');
 
+  List<MyEvent> _eventList = [];
+
+  List<MyEvent> _GetDataFromStorage() {
+    int i = 0;
+    List<MyEvent> l = [];
+    while (db.get(i) != null) {
+      l.add(db.get(i)!);
+      i++;
+    }
+    return l;
+  }
+
+  void _StoreDateIntoStorage() {
+    for (int i = 0; i < _eventList.length; i++) {
+      db.put(i, _eventList[i]);
+    }
+    db.put(_eventList.length, null);
+    db.flush();
+  }
+
+  _MyHomePageState() {
+    _eventList = _GetDataFromStorage();
+    print('retrieved');
+  }
   //void _incrementCounter() {}
+
+  Widget _RightSlideBackground() {
+    return Container(
+      color: Colors.red,
+      child: Align(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            SizedBox(
+              width: 20,
+            ),
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            Text(
+              " Delete",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.left,
+            ),
+          ],
+        ),
+        alignment: Alignment.centerLeft,
+      ),
+    );
+  }
+
+  Widget _LeftSlideBackground() {
+    return Container(
+      color: Colors.red,
+      child: Align(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            Text(
+              " Delete",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.right,
+            ),
+            SizedBox(
+              width: 20,
+            ),
+          ],
+        ),
+        alignment: Alignment.centerRight,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,20 +124,39 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: ListView.separated(
-        itemBuilder: (context, index) => _event_list[index].toWidget(context),
-        itemCount: _event_list.length,
+        itemBuilder: (context, index) {
+          return Dismissible(
+            key: Key(_eventList[index].toString()),
+            background: _RightSlideBackground(),
+            secondaryBackground: _LeftSlideBackground(),
+            child: InkWell(
+              child: _eventList[index].toWidget(context),
+            ),
+            onDismissed: (direction) => {
+              setState(() {
+                _eventList.removeAt(index);
+                _StoreDateIntoStorage();
+              })
+            },
+          );
+        },
+        itemCount: _eventList.length,
         separatorBuilder: (context, index) => SizedBox(height: 30),
         padding: EdgeInsets.all(40),
       ),
+
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
-          MyEvent e = await Navigator.of(context).push(MaterialPageRoute(
+          MyEvent? e = await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => CreateEventScreen(title: "Create Event")));
 
-          setState(() {
-            _event_list.add(e);
-          });
+          if (e != null)
+            setState(() {
+              _eventList.add(e);
+
+              _StoreDateIntoStorage();
+            });
         },
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );

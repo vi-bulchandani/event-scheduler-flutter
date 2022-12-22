@@ -1,8 +1,17 @@
 import 'package:event_scheduler/create_event.dart';
+import 'package:event_scheduler/event.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+  Hive.registerAdapter(MyEventAdapter());
+  await Hive.openBox<MyEvent?>('events list');
+  print('opened database event_list');
+
   runApp(const MyApp());
 }
 
